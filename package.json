@@ -4,7 +4,7 @@
   "description": "A networked version of the classic card game rummy, using socket io.",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint src/js",
+    "lint": "eslint public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,5 +27,8 @@
   "homepage": "https://github.com/Pjaerr/Socket-Rummy#readme",
   "devDependencies": {
     "eslint": "^4.10.0"
+  },
+  "dependencies": {
+    "socket.io": "^2.0.4"
   }
 }
