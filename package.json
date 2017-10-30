@@ -1,0 +1,31 @@
+{
+  "name": "socket-rummy",
+  "version": "1.0.0",
+  "description": "A networked version of the classic card game rummy, using socket io.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint src/js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pjaerr/Socket-Rummy.git"
+  },
+  "keywords": [
+    "rummy",
+    "socketio",
+    "nodejs",
+    "npm",
+    "javascript",
+    "cardgame"
+  ],
+  "author": "Pjaerr",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Pjaerr/Socket-Rummy/issues"
+  },
+  "homepage": "https://github.com/Pjaerr/Socket-Rummy#readme",
+  "devDependencies": {
+    "eslint": "^4.10.0"
+  }
+}
