@@ -23,5 +23,17 @@ io.sockets.on('connection', function(socket)
     socket.broadcast.emit('mouseMoved', data);
   });
 
+
+
+  socket.on('shuffleStock', shuffleStock(data));
+
+
 });
+
+
+function shuffleStock(data)
+{
+  /*Come up with a purely positonal approach here, so that it can be returned to both clients, and then they move their
+  version of stock[] around according to those numbers. This way, both stocks are the same.*/
+}
 
