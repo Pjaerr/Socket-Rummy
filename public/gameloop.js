@@ -11,8 +11,10 @@ function game_loop(timestamp)
 	var timeElapsed = (timestamp - previous) / 1000;  //Work out the elapsed time.
 	  
   	update(timeElapsed); //Update the game based on elapsed time.
-  	 	
-  	render();	//Renders the game.
+      
+    renderWindow.clear();
+    render();	//Renders the game.
+    
 	
   	previous = timestamp;  //set the previous timestamp ready for next time
   	requestAnimationFrame(game_loop); //Recursively calls the game loop every animation frame when the browser is ready.

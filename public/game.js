@@ -3,7 +3,7 @@
 
 //SOCKET RUMMY CLIENT CODE
 
-var renderWindow = new RenderWindow(800, 600, "#067B2C"); //Initialises the RenderWindow. Allowing RenderWindow.draw() to be called.
+var renderWindow = new RenderWindow(640, 480, "#067B2C"); //Initialises the RenderWindow. Allowing RenderWindow.draw() to be called.
 
 function Client()
 {
@@ -81,6 +81,30 @@ function Util()
     }
 }
 
+
+var card1 = new Card(2, 0);
+
+document.addEventListener('mousemove', function(e)
+{
+    var mouseData = 
+    {
+        x: e.clientX,
+        y: e.clientY
+    }
+
+    card1.sprite.x = mouseData.x;
+    card1.sprite.y = mouseData.y;
+
+    socket.emit('mouseMoved', mouseData);
+});
+
+socket.on('mouseMoved', function(mouseData)
+{
+    card1.sprite.x = mouseData.x;
+    card1.sprite.y = mouseData.y;
+});
+
+
 //Object References
 var client = new Client();
 var util = new Util();
@@ -91,11 +115,6 @@ function Card(number, suit)
     this.number = number;
     this.suit = suit;
     this.sprite;
-    this.position = 
-    {
-        x: Math.floor((Math.random() * 800) + 0),
-        y: Math.floor((Math.random() * 600) + 0)
-    }
 
     this.setSuit = function()
     {
@@ -103,19 +122,19 @@ function Card(number, suit)
         {
             case 0:
                 this.suit = "clubs";
-                this.sprite = new Sprite("cards/clubs/" + this.number + ".png", this.position.x, this.position.y)
+                this.sprite = new Sprite("cards/clubs/" + this.number + ".png")
                 break;
             case 1:
                 this.suit = "diamonds";
-                this.sprite = new Sprite("cards/diamonds/" + this.number + ".png", this.position.x, this.position.y)
+                this.sprite = new Sprite("cards/diamonds/" + this.number + ".png")
                 break;
             case 2:
                 this.suit = "hearts";
-                this.sprite = new Sprite("cards/hearts/" + this.number + ".png", this.position.x, this.position.y)
+                this.sprite = new Sprite("cards/hearts/" + this.number + ".png")
                 break;
             case 3:
                 this.suit = "spades";
-                this.sprite = new Sprite("cards/spades/" + this.number + ".png", this.position.x, this.position.y)
+                this.sprite = new Sprite("cards/spades/" + this.number + ".png")
                 break;   
         }
     }
@@ -130,19 +149,23 @@ socket.on('handChanged', function(data)
     client.otherClientData.numberOfCards = data;
 });
 
+
+
 //Call code that happens once on game start here.
 function start()
 {
-    util.initialiseStock();
+    //util.initialiseStock();
 }
 
 //Call render code in here.
 function render()
 {
-    for (var i = 0; i < client.stock.length; i++)
+   /* for (var i = 0; i < client.stock.length; i++)
         {
             renderWindow.draw(client.stock[i].sprite);
-        }
+        }*/
+
+    renderWindow.draw(card1.sprite);
     
 }
 

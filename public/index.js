@@ -17,7 +17,18 @@ io.sockets.on('connection', function(socket)
   //Prints the new connections socket id.
   console.log('New Connection: ' + socket.id);
 
+
+
+  socket.on('mouseMoved', function(mouseData)
+  {
+      socket.broadcast.emit('mouseMoved', mouseData);
+  });
+
 });
+
+
+
+
 
 
   

@@ -20,6 +20,11 @@ function RenderWindow(width, height, bgColour)
         canvas.style.background = colour;
     }
 
+    this.clear = function()
+    {
+        this.context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
     this.resize(width, height);
     this.setBackgroundColour(bgColour);
 }
