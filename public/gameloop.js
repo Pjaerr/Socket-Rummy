@@ -12,7 +12,6 @@ function game_loop(timestamp)
 	  
   	update(timeElapsed); //Update the game based on elapsed time.
       
-    renderWindow.clear();
     render();	//Renders the game.
     
 	
