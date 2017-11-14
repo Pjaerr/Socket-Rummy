@@ -6,7 +6,6 @@ function RenderWindow(width, height, bgColour)
     //Draws a sprite at its given position.
     this.draw = function(sprite)
     {
-        this.context.clearRect(0, 0, canvas.width, canvas.height);
         this.context.drawImage(sprite.img, sprite.x, sprite.y, sprite.imageData.width, sprite.imageData.height);
     }
 
@@ -19,6 +18,11 @@ function RenderWindow(width, height, bgColour)
     this.setBackgroundColour = function(colour)
     {
         canvas.style.background = colour;
+    }
+
+    this.clearCanvas = function()
+    {
+        this.context.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     this.resize(width, height);

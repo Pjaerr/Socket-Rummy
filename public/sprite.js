@@ -24,3 +24,13 @@ Sprite.prototype.resizeImage = function(w, h)
     this.imageData.width = w;
     this.imageData.height = h;
 }
+Sprite.prototype.setPosition = function(x, y)
+{
+    this.x = x;
+    this.y = y;
+}
+Sprite.prototype.translate = function(x, y)
+{
+    this.x += x;
+    this.y += y;
+}

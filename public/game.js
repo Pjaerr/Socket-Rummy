@@ -25,6 +25,7 @@ Client.prototype.takeFromStock = function()
 
 Client.prototype.addToDiscard = function(card)
 {
+    card.sprite.setPosition(340, 160);
     this.discard.push(card);
     socket.emit('addedToDiscard', card); //Tell the other client the discard pile has changed, telling it which card has been added.
 }
@@ -159,13 +160,13 @@ function start()
     util.initialiseStock();
 }
 
+var cardBack = new Sprite("cards/back.png", 480, 160);
 //Call render code in here.
 function render()
 {
-  /* for (var i = 0; i < client.stock.length; i++)
-        {
-            renderWindow.draw(client.stock[i].sprite);
-        }*/
+        renderWindow.draw(client.discard[0].sprite);
+
+        renderWindow.draw(cardBack);
 }
 
 //Call game code in here.

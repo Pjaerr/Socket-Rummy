@@ -11,7 +11,10 @@ function game_loop(timestamp)
 	var timeElapsed = (timestamp - previous) / 1000;  //Work out the elapsed time.
 	  
   	update(timeElapsed); //Update the game based on elapsed time.
-      
+	  
+	  
+	renderWindow.clearCanvas();
+	
     render();	//Renders the game.
     
 	

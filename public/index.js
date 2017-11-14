@@ -22,6 +22,8 @@ for (var i = 0; i < 4; i++) //For every suit.
       }
   }
 
+
+
 //Code to be called when a connection is made.
 io.sockets.on('connection', function(socket)
 {
@@ -30,15 +32,10 @@ io.sockets.on('connection', function(socket)
   console.log('New Connection: ' + socket.id);
 
 
-
-  socket.on('mouseMoved', function(mouseData)
-  {
-      socket.broadcast.emit('mouseMoved', mouseData);
-  });
-
+  //Implement a similar system to the stock function but for the discard pile. Where the element is spliced, just add it to the discard pile first.
+  
   socket.on('requestStock', function()
   {
-    //NEED TO JUST EMIT TO THE CLIENT REQUESTING IT.
     socket.emit('stockIndexReturned', cardIds[0]);
     cardIds.splice(0, 1); //Remove that element from the array.
   });
