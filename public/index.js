@@ -24,6 +24,11 @@ for (var i = 0; i < 4; i++) //For every suit.
 
 var discardCardIds = [];
 
+var initialDiscardCard = Math.floor((Math.random() * 51) + 0);
+discardCardIds.push(stockCardIds[initialDiscardCard]);
+stockCardIds.splice(initialDiscardCard, 1);
+
+
 //Code to be called when a connection is made.
 io.sockets.on('connection', function(socket)
 {
@@ -73,8 +78,15 @@ io.sockets.on('connection', function(socket)
             i = discardCardIds.length;
           }
       }
-    
   });
+
+socket.on('send_gameStart', function()
+{
+  socket.emit('receive_gameStart');
+});
+
+io.emit('receive_addedToDiscard', discardCardIds[0]);
+io.emit('newConnection');
 
 });
 

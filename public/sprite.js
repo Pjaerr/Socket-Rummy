@@ -1,5 +1,7 @@
 function Sprite(path, x, y, w, h)
 {
+    this.type = "sprite"; //Used to indicate to the renderWindow what kind of drawable object this is.
+
     this.path = "resources/images/" + path;
     this.x = x || 0;
     this.y = y || 0;

@@ -4,9 +4,20 @@ function RenderWindow(width, height, bgColour)
     this.context = canvas.getContext("2d");
 
     //Draws a sprite at its given position.
-    this.draw = function(sprite)
+    this.draw = function(drawable)
     {
-        this.context.drawImage(sprite.img, sprite.x, sprite.y, sprite.imageData.width, sprite.imageData.height);
+        if (drawable.type === "sprite")
+            {
+                this.context.drawImage(drawable.img, drawable.x, drawable.y, drawable.imageData.width, drawable.imageData.height);
+            }
+        else if (drawable.type === "rect")
+            {
+                this.context.beginPath();
+                this.context.rect(drawable.x, drawable.y, drawable.width, drawable.height);
+                this.context.fillStyle = drawable.fillColour;
+                this.context.fill();
+                this.context.closePath();
+            }
     }
 
     this.resize = function(width, height)

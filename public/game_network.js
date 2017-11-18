@@ -34,14 +34,12 @@ socket.on('receive_addedToDiscard', function(cardId)
         {
             if (client.stock[i].id === cardId)
                 {
-                    client.stock[i].sprite.setPosition(340, 160);
+                    client.stock[i].setPosition(340, 160);
                     client.discard.push(client.stock[i]);
                     client.stock.splice(i, 1);
                     i = client.stock.length;
                 }
         }
-
-        console.log(client.discard);
 });
 
 /**Loop through the local discard pile, and remove the card for the corresponding id that
@@ -62,7 +60,6 @@ socket.on('receive_removedFromDiscard', function(cardId)
 //When the other clients hand is changed, store the number of cards it has.
 socket.on('receive_handChanged', function(data)
 {
-    console.log("other client hand has changed");
     client.otherClientData.numberOfCards = data;
 
     cardBacks = [];
@@ -72,4 +69,17 @@ socket.on('receive_handChanged', function(data)
         }
     
     cardBacks[cardBacks.length - 1].setPosition(480, 160);
+});
+
+socket.on('receive_gameStart', function()
+{
+    for (var i = 0; i < 7; i++)
+        {
+            client.takeFromStock();
+        }
+});
+
+socket.on('newConnection', function()
+{
+    socket.emit('send_handChanged', client.hand.length);
 });
