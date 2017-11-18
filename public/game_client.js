@@ -1,14 +1,12 @@
 //Client Code
-//This is ran on all clients, and contains code for sending and receiving server events.
-
-//SOCKET RUMMY CLIENT CODE
+//This is ran on all clients, and contains code for sending server events.
 
 var renderWindow = new RenderWindow(640, 480, "#067B2C"); //Initialises the RenderWindow. Allowing RenderWindow.draw() to be called.
 
 function Client()
 {
     //Data about the other client, for now only the number of cards they have in their hand.
-    this.otherClientData = 
+    this.otherClientData =
     {
         numberOfCards: 0
     }
@@ -20,38 +18,34 @@ function Client()
 //Should be called on the client, and then emitted to the server to update the stock on the other client.
 Client.prototype.takeFromStock = function()
 {
-    socket.emit('requestStock');
+    socket.emit('send_requestStock');
 }
 
-Client.prototype.addToDiscard = function(card)
+Client.prototype.takeFromDiscard = function()
 {
-    card.sprite.setPosition(340, 160);
-    this.discard.push(card);
-    socket.emit('addedToDiscard', card); //Tell the other client the discard pile has changed, telling it which card has been added.
-}
-Client.prototype.removeFromDiscard = function(card)
-{
-    this.addToHand(card);
-    util.removeCardFromArray(card, this.discard);
+    this.addToHand(this.discard[this.discard.length - 1]);
+    util.removeCardFromArray(this.discard[this.discard.length - 1], this.discard);
 
-    socket.emit('removedFromDiscard', card); //Tell the other client the discard pile has changed, telling it which card has been removed.
+    socket.emit('send_removedFromDiscard', this.discard[this.discard.length - 1].id); //Tell the other client the discard pile has changed, telling it which card has been removed.
 }
 
 Client.prototype.addToHand = function(card)
 {
     this.hand.push(card);
-    socket.emit('handChanged', this.hand.length);
+    socket.emit('send_handChanged', this.hand.length);
 }
 
 //Should be called on the client, and then trigger an event for the server to update the number of cards this client has for the other client.
 Client.prototype.removeFromHand = function(card)
 {
     util.removeCardFromArray(card, this.hand); //Remove card from hand array.
-    this.addToDiscard(card); //Add the card to the discard array.
+
+    card.sprite.setPosition(340, 160);
+    this.discard.push(card);
+    socket.emit('send_addedToDiscard', card.id); //Tell the other client the discard pile has changed, telling it which card has been added.
+
     this.takeFromStock(); //Remove a card from the stock pile and add it to hand. This will trigger a hand changed event.
 }
-
-
 
 function Util()
 {
@@ -75,38 +69,12 @@ function Util()
                 client.stock.push(new Card(j, i)) //Create a new card of suit i and number j and add it to stock.
             }
         }
-    
-        //Trigger network event here that shuffles stock[] and emits it to both clients to update their version.
-        //socket.emit('shuffleStock', stock.length);
     }
 }
 
 //Object References
 var client = new Client();
 var util = new Util();
-
-socket.on('stockIndexReturned', function(cardId)
-{
-    /*When the id matching the card from the top of the shuffled stock is returned. It will loop
-    through the stock of card objects on this client and will find the matching card. Once found,
-    it will add that card to this clients hand, and remove it from the stock on this client.
-    
-    Right now, the card will still exist on the other clients unshuffled stock, it won't effect the game as
-    both clients request a card from the id array on the server which does change everytime a card is taken
-    and so a matching id will never show up twice.*/
-    for (var i = 0; i < client.stock.length; i++)
-        {
-            if (client.stock[i].id === cardId)
-                {
-                    client.hand.push(client.stock[i]);
-                    client.stock.splice(i, 1);
-                    i = client.stock.length;
-                }
-        }
-
-    console.log(client.hand);
-});
-
 
 function Card(number, suit)
 {
@@ -136,46 +104,55 @@ function Card(number, suit)
             case 3:
                 this.suit = "spades";
                 this.sprite = new Sprite("cards/spades/" + this.number + ".png");
-                break;   
+                break;
         }
     }
 
     this.setup();
-    
-    
 }
 
-
-//When the other clients hand is changed, store the number of cards it has.
-socket.on('handChanged', function(data)
-{
-    client.otherClientData.numberOfCards = data;
-});
-
-
+var cardBacks = [];
 
 //Call code that happens once on game start here.
 function start()
 {
     util.initialiseStock();
+    cardBacks.push(new Sprite("cards/back.png", 480, 160)); //Create the initial stock pile card back.
 }
 
-var cardBack = new Sprite("cards/back.png", 480, 160);
 //Call render code in here.
 function render()
 {
-        renderWindow.draw(client.discard[0].sprite);
+        //Draw the top card on the discard pile.
+        if (client.discard[client.discard.length - 1] != null)
+        {
+            renderWindow.draw(client.discard[client.discard.length - 1].sprite);
+        }
 
-        renderWindow.draw(cardBack);
+        //Draw this client's hand.
+        for (var i = 0; i < client.hand.length; i++)
+            {
+                if (client.hand[i] != null)
+                    {
+                        //Do a check here to see if card x has reached bounds, then gotta move cards down on the y and reset on the x.
+                        client.hand[i].sprite.setPosition((i * 20), 300); 
+                        renderWindow.draw(client.hand[i].sprite);
+                    }
+                
+            }
+
+        //Draw all of the card backs in the game.
+        for (var i  = 0; i < cardBacks.length; i++)
+            {
+                if (cardBacks[i] != null)
+                    {
+                        renderWindow.draw(cardBacks[i]);
+                    }
+                
+            }
 }
 
 //Call game code in here.
 function update(timeElapsed)
 {
-
 }
-
-
-
-
-
