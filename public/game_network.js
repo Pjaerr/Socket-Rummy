@@ -65,9 +65,19 @@ socket.on('receive_handChanged', function (data)
     client.otherClientData.numberOfCards = data;
 
     cardBacks = [];
+    var count = 0;
     for (var i = 0; i < client.otherClientData.numberOfCards + 1; i++)
     {
-        cardBacks.push(new Sprite("cards/back.png", (i * 20), 20));
+        if (i < 25)
+        {
+            cardBacks.push(new Sprite("cards/back.png", (i * 20), 20));
+        }
+        else
+        {
+            cardBacks.push(new Sprite("cards/back.png", (count * 20), -40));
+            count++;
+        }
+
     }
 
     cardBacks[cardBacks.length - 1].setPosition(480, 160);

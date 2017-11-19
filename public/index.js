@@ -29,13 +29,13 @@ var io = socket(server);
    * in turn the client will move said card from either their hand or the stock array into the discard pile so that it can be drawn. 
 */
 
-
 var stockCardIds = [];
 var discardCardIds = [];
 
 function setupGame()
 {
   //Reset id arrays.
+  let tempStockCardIds = [];
   stockCardIds = [];
   discardCardIds = [];
 
@@ -44,14 +44,27 @@ function setupGame()
   {
     for (var j = 0; j < 13; j++) //For every card in that suit.
     {
-      stockCardIds.push(i.toString() + j.toString());
+      tempStockCardIds.push(i.toString() + j.toString());
     }
   }
 
   //Creates an array of ints, storing 1 card from the stock pile at random.
   let initialDiscardCardId = Math.floor((Math.random() * 51) + 0);
-  discardCardIds.push(stockCardIds[initialDiscardCardId]);
-  stockCardIds.splice(initialDiscardCardId, 1);
+  discardCardIds.push(tempStockCardIds[initialDiscardCardId]);
+  tempStockCardIds.splice(initialDiscardCardId, 1);
+
+  /**Shuffles the cards by choosing a random index between 0 and the current max
+   * length of the temporary stock array, once that index has been found, it pushes
+   * the id at that index into the actual stock array, and then removes it from the temp
+   * array. This causes the length of temp stock array to go down, and thus the cycle
+   * continues until the length of temp array is 0.*/
+
+  for (var i = tempStockCardIds.length; i > 0; i--)
+  {
+    let index = Math.floor((Math.random() * tempStockCardIds.length) + 0);
+    stockCardIds.push(tempStockCardIds[index]);
+    tempStockCardIds.splice(index, 1);
+  }
 }
 
 
