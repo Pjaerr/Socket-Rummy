@@ -1,20 +1,23 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Socket Rummy</title>
-  </head>
-  <body>
-    <canvas id="canvas" width="640" height="480" style="border:1px solid black;"></canvas>
-  </body>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-  <script>
-    var socket;
-    socket = io.connect("localhost:3000");
-  </script>
-  <script src="window.js"></script>
-  <script src="sprite.js"></script>
-  <script src="game_client.js"></script>
-  <script src="game_network.js"></script>
-  <script src="gameloop.js"></script>
+
+<head>
+  <title>Socket Rummy</title>
+</head>
+
+<body>
+  <canvas id="canvas" width="640" height="480" style="border:1px solid black;"></canvas>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  var socket;
+  socket = io.connect("localhost:3000");
+</script>
+<script src="window.js"></script>
+<script src="sprite.js"></script>
+<script src="game_client.js"></script>
+<script src="game_network.js"></script>
+<script src="gameloop.js"></script>
+
 </html>
