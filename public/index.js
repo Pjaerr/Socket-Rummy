@@ -67,6 +67,19 @@ function setupGame()
   }
 }
 
+function shuffleDiscardIntoStock()
+{
+  for (var i = discardCardIds.length; i > 0; i--)
+  {
+    let index = Math.floor((Math.random() * discardCardIds.length) + 0);
+    stockCardIds.push(discardCardIds[index]);
+    discardCardIds.splice(index, 1);
+  }
+
+  discardCardIds.push(stockCardIds[Math.floor((Math.random() * stockCardIds.length) + 0)]);
+  io.emit('shuffledDiscardIntoStock');
+}
+
 
 /**send_ events are events coming from a client and receive_ events are
  * events coming from the server.
@@ -105,6 +118,10 @@ io.sockets.on('connection', function (socket)
 
   socket.on('send_requestStock', function ()
   {
+    if (stockCardIds.length <= 1)
+    {
+      shuffleDiscardIntoStock();
+    }
     /**If a client requests a card from the stock pile, send back the id 'on the top' of the 
      * stock array and then remove that id from the stock array.
     */
@@ -119,6 +136,11 @@ io.sockets.on('connection', function (socket)
      */
     discardCardIds.push(cardId);
     socket.broadcast.emit('receive_addedToDiscard', cardId);
+  });
+
+  socket.on('send_stockHasBeenShuffled', function ()
+  {
+    socket.emit('receive_addedToDiscard', discardCardIds[0]);
   });
 
   socket.on('send_removedFromDiscard', function (cardId) 

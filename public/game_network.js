@@ -30,16 +30,20 @@ socket.on('receive_requestStock', function (cardId)
  */
 socket.on('receive_addedToDiscard', function (cardId)
 {
-    for (var i = 0; i < client.stock.length; i++)
+    if (client.stock.length >= 1)
     {
-        if (client.stock[i].id === cardId)
+        for (var i = 0; i < client.stock.length; i++)
         {
-            client.stock[i].setPosition(340, 160);
-            client.discard.push(client.stock[i]);
-            client.stock.splice(i, 1);
-            i = client.stock.length;
+            if (client.stock[i].id === cardId)
+            {
+                client.stock[i].setPosition(340, 160);
+                client.discard.push(client.stock[i]);
+                client.stock.splice(i, 1);
+                i = client.stock.length;
+            }
         }
     }
+
 });
 
 /**Loop through the local discard pile, and remove the card for the corresponding id that
@@ -102,4 +106,16 @@ socket.on('receive_restartGame', function ()
 {
     client.restartGame();
     socket.emit('send_gameStart');
+});
+
+socket.on('shuffledDiscardIntoStock', function ()
+{
+    for (var i = 0; i < client.discard.length; i++)
+    {
+        client.stock.push(client.discard[i]);
+    }
+
+    client.discard = [];
+
+    socket.emit('send_stockHasBeenShuffled');
 });
