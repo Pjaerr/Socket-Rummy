@@ -14,55 +14,67 @@ function Client()
     this.hand = []; //This client's hand.
     this.stock = []; //The stock.
     this.discard = []; //The discard pile.
-}
-Client.prototype.restartGame = function ()
-{
-    /**Pushes all cards from hand[] and discard[] into stock[] and then
-     * clears hand[] and discard[]. The corresponding id's will have been reset on the server
-     * and so it is like a brand new game.*/
 
-    for (var i = 0; i < this.hand.length; i++)
-    {
-        this.stock.push(this.hand[i]);
-    }
-    this.hand = [];
+    this.isThisClientsTurn = true;
 
-    for (var i = 0; i < this.discard.length; i++)
-    {
-        this.stock.push(this.discard[i]);
-    }
-    this.discard = [];
+    this.rematchButton = new Button(20, 20, 50, 50, "purple");
+    this.rematchButtonIsEnabled = false;
 }
 
 //Should be called on the client, and then emitted to the server to update the stock on the other client.
 Client.prototype.takeFromStock = function ()
 {
-    socket.emit('send_requestStock');
+    if (this.isThisClientsTurn)
+    {
+        socket.emit('send_requestStock');
+        socket.emit('send_endTurn');
+    }
 }
 
 Client.prototype.takeFromDiscard = function ()
 {
-    this.addToHand(this.discard[this.discard.length - 1]);
-    socket.emit('send_removedFromDiscard', this.discard[this.discard.length - 1].id); //Tell the other client the discard pile has changed, telling it which card has been removed.
-    util.removeCardFromArray(this.discard[this.discard.length - 1], this.discard);
+    if (this.isThisClientsTurn)
+    {
+        this.addToHand(this.discard[this.discard.length - 1]);
+        socket.emit('send_removedFromDiscard', this.discard[this.discard.length - 1].id); //Tell the other client the discard pile has changed, telling it which card has been removed.
+        util.removeCardFromArray(this.discard[this.discard.length - 1], this.discard);
+        socket.emit('send_endTurn');
+    }
+
 }
 
 Client.prototype.addToHand = function (card)
 {
-    this.hand.push(card);
-    socket.emit('send_handChanged', this.hand.length);
+    if (this.isThisClientsTurn)
+    {
+        this.hand.push(card);
+        socket.emit('send_handChanged', this.hand.length);
+    }
 }
 
 //Should be called on the client, and then trigger an event for the server to update the number of cards this client has for the other client.
 Client.prototype.removeFromHand = function (card)
 {
-    util.removeCardFromArray(card, this.hand); //Remove card from hand array.
+    if (this.isThisClientsTurn)
+    {
+        util.removeCardFromArray(card, this.hand); //Remove card from hand array.
 
-    card.setPosition(320, 140);
-    this.discard.push(card);
-    socket.emit('send_addedToDiscard', card.id); //Tell the other client the discard pile has changed, telling it which card has been added.
+        card.setPosition(320, 140);
+        this.discard.push(card);
+        socket.emit('send_addedToDiscard', card.id); //Tell the other client the discard pile has changed, telling it which card has been added.
 
-    this.takeFromStock(); //Remove a card from the stock pile and add it to hand. This will trigger a hand changed event.
+        this.takeFromStock(); //Remove a card from the stock pile and add it to hand. This will trigger a hand changed event.
+        socket.emit('send_isHandEmpty', this.hand.length);
+        socket.emit('send_endTurn');
+    }
+}
+
+Client.prototype.makeSet = function (card)
+{
+    if (this.isThisClientsTurn)
+    {
+        socket.emit('send_endTurn');
+    }
 }
 
 function Util()
@@ -202,6 +214,11 @@ function render()
     }
 
     renderWindow.draw(takeFromStockBtn);
+
+    if (client.rematchButtonIsEnabled)
+    {
+        renderWindow.draw(client.rematchButton);
+    }
 }
 
 var boundingRect = canvas.getBoundingClientRect();
@@ -239,6 +256,12 @@ document.addEventListener('click', function ()
     if (takeFromStockBtn.isHighlighted())
     {
         client.takeFromStock();
+    }
+
+    if (client.rematchButtonIsEnabled && client.rematchButton.isHighlighted())
+    {
+        socket.emit('send_startRematch');
+        client.rematchButtonIsEnabled = false;
     }
 
 

@@ -5,7 +5,7 @@ var socket = require('socket.io');
 
 //Start the Express Server on port 3000.
 var app = express();
-var server = app.listen(3000);
+var server = app.listen(3000, '0.0.0.0');
 
 //The server will find files within the folder index.js sits.
 app.use(express.static(__dirname));
@@ -89,9 +89,15 @@ setupGame();
 
 
 
+var yesToRematch = 0;
 //Code to be called when a connection is made.
 io.sockets.on('connection', function (socket) 
 {
+
+
+
+  socket.on('send_endTurn', function () { socket.broadcast.emit('receive_turnEnded') });
+
   /**When a client disconnects, tell the other client to reset their game. Then resetup the game
    on the server side.*/
   socket.on('disconnect', function ()
@@ -167,4 +173,27 @@ io.sockets.on('connection', function (socket)
     //and sends back that the server is ready.
     socket.emit('receive_gameStart');
   });
+
+  socket.on('send_isHandEmpty', function (handLength)
+  {
+    if (handLength <= 0)
+    {
+      socket.emit('receive_youWin');
+      socket.broadcast.emit('receive_youLose');
+    }
+  });
+
+
+  socket.on('send_startRematch', function ()
+  {
+    yesToRematch++;
+
+    if (yesToRematch >= 2)
+    {
+      io.emit('receive_restartGame');
+      setupGame();
+      io.emit('receive_addedToDiscard', discardCardIds[0]);
+    }
+  });
+
 });

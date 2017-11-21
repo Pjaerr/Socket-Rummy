@@ -104,7 +104,22 @@ socket.on('newConnection', function ()
 
 socket.on('receive_restartGame', function ()
 {
-    client.restartGame();
+    /**Pushes all cards from hand[] and discard[] into stock[] and then
+     * clears hand[] and discard[]. The corresponding id's will have been reset on the server
+     * and so it is like a brand new game.*/
+
+    for (var i = 0; i < client.hand.length; i++)
+    {
+        client.stock.push(client.hand[i]);
+    }
+    client.hand = [];
+
+    for (var i = 0; i < client.discard.length; i++)
+    {
+        client.stock.push(client.discard[i]);
+    }
+    client.discard = [];
+
     socket.emit('send_gameStart');
 });
 
@@ -118,4 +133,15 @@ socket.on('shuffledDiscardIntoStock', function ()
     client.discard = [];
 
     socket.emit('send_stockHasBeenShuffled');
+});
+
+socket.on('receive_youWin', function ()
+{
+    console.log("You Win!");
+    client.rematchButtonIsEnabled = true;
+});
+socket.on('receive_youLose', function ()
+{
+    console.log("You Lose!");
+    client.rematchButtonIsEnabled = true;
 });

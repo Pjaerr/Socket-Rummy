@@ -3,6 +3,9 @@ function RenderWindow(width, height, bgColour)
     var canvas = document.getElementById("canvas");
     this.context = canvas.getContext("2d");
 
+    this.width = width;
+    this.height = height;
+
     //Draws a sprite at its given position.
     this.draw = function(drawable)
     {
@@ -24,6 +27,8 @@ function RenderWindow(width, height, bgColour)
     {
         canvas.width = width;
         canvas.height = height;
+        this.width = width;
+        this.height = height;
     }
 
     this.setBackgroundColour = function(colour)
