@@ -80,6 +80,11 @@ function shuffleDiscardIntoStock()
   io.emit('shuffledDiscardIntoStock');
 }
 
+function isThisClientsTurn(id)
+{
+  return (currentIdOfTurn === id);
+}
+
 
 /**send_ events are events coming from a client and receive_ events are
  * events coming from the server.
@@ -88,15 +93,28 @@ function shuffleDiscardIntoStock()
 setupGame();
 
 
+var currentIdOfTurn = "";
+var numberOfConnections = 0;
 
-var yesToRematch = 0;
 //Code to be called when a connection is made.
 io.sockets.on('connection', function (socket) 
 {
 
+  /**If this is the first client to connect, make it their turn. */
+  if (numberOfConnections <= 0)
+  {
+    currentIdOfTurn = socket.id;
+  }
 
-
-  socket.on('send_endTurn', function () { socket.broadcast.emit('receive_turnEnded') });
+  /**If it is no ones turn, make it the turn of the next connection. This makes it so that if one client connects ahead of time, they will
+   * take their first seven cards, and then end their turn, if another client doesn't respond and set the current turn id to their socket id, 
+   * it will be set to X instead, which indicates no other client is connected, when a client does connect, if the current state is X, that client
+   * takes the turn.
+   */
+  if (currentIdOfTurn === "X")
+  {
+    currentIdOfTurn = socket.id;
+  }
 
   /**When a client disconnects, tell the other client to reset their game. Then resetup the game
    on the server side.*/
@@ -105,7 +123,19 @@ io.sockets.on('connection', function (socket)
     io.emit('receive_restartGame');
     setupGame();
     io.emit('receive_addedToDiscard', discardCardIds[0]);
+    socket.broadcast.emit('receive_makeMyTurn');
   });
+
+  /**When a client ends their turn, tell the other client to emit an event that makes it their turn on the network.*/
+  socket.on('send_endTurn', function ()
+  {
+    socket.broadcast.emit('receive_makeMyTurn');
+    socket.emit('receive_turnEnded');
+
+    currentIdOfTurn = "X";
+  });
+
+  socket.on('send_makeMyTurn', function () { currentIdOfTurn = socket.id });
 
 
   //Prints the new connection's socket id.
@@ -124,15 +154,18 @@ io.sockets.on('connection', function (socket)
 
   socket.on('send_requestStock', function ()
   {
-    if (stockCardIds.length <= 1)
+    if (isThisClientsTurn(socket.id))
     {
-      shuffleDiscardIntoStock();
+      if (stockCardIds.length <= 1)
+      {
+        shuffleDiscardIntoStock();
+      }
+      /**If a client requests a card from the stock pile, send back the id 'on the top' of the 
+       * stock array and then remove that id from the stock array.
+      */
+      socket.emit('receive_requestStock', stockCardIds[0]);
+      stockCardIds.splice(0, 1);
     }
-    /**If a client requests a card from the stock pile, send back the id 'on the top' of the 
-     * stock array and then remove that id from the stock array.
-    */
-    socket.emit('receive_requestStock', stockCardIds[0]);
-    stockCardIds.splice(0, 1);
   });
 
   socket.on('send_addedToDiscard', function (cardId) 
@@ -151,20 +184,54 @@ io.sockets.on('connection', function (socket)
 
   socket.on('send_removedFromDiscard', function (cardId) 
   {
-    /**If a client removes a card from the discard pile, loop through the discard array on the server
+    if (isThisClientsTurn(socket.id))
+    {
+      /**If a client removes a card from the discard pile, loop through the discard array on the server
      * until a match for the removed id is found, when found, remove that id from the array on the server
      * and tell all other clients that a card has been removed, telling them the id so they can remove it 
      * locally.
      */
-    for (var i = 0; i < discardCardIds.length; i++)
-    {
-      if (discardCardIds[i] === cardId)
+
+      for (var i = 0; i < discardCardIds.length; i++)
       {
-        discardCardIds.splice(i, 1);
-        socket.broadcast.emit('receive_removedFromDiscard', cardId);
-        i = discardCardIds.length;
+        if (discardCardIds[i] === cardId)
+        {
+          discardCardIds.splice(i, 1);
+          socket.emit('receive_takeFromDiscard'); //Tell the client requesting the discard card to remove it locally.
+          socket.broadcast.emit('receive_removedFromDiscard', cardId); //Tell the client not requesting the card to remove it locally by its id.
+          i = discardCardIds.length;
+        }
       }
     }
+  });
+
+  socket.on('send_removeFromHand', function (cardId)
+  {
+    if (isThisClientsTurn(socket.id))
+    {
+      socket.emit('receive_removeFromHand', cardId);
+    }
+  });
+
+  socket.on('send_addCardToSet', function (cardId)
+  {
+    if (isThisClientsTurn(socket.id))
+    {
+      socket.emit('receive_addCardToSet', cardId);
+    }
+  });
+
+  socket.on('send_makeSet', function ()
+  {
+    if (isThisClientsTurn(socket.id))
+    {
+      socket.emit('receive_makeSet');
+    }
+  });
+
+  socket.on('send_setMade', function (setIds)
+  {
+    socket.broadcast.emit('receive_setMade', setIds);
   });
 
   //The server recieves this event when the client is ready.
@@ -183,17 +250,5 @@ io.sockets.on('connection', function (socket)
     }
   });
 
-
-  socket.on('send_startRematch', function ()
-  {
-    yesToRematch++;
-
-    if (yesToRematch >= 2)
-    {
-      io.emit('receive_restartGame');
-      setupGame();
-      io.emit('receive_addedToDiscard', discardCardIds[0]);
-    }
-  });
-
+  numberOfConnections++;
 });

@@ -5,7 +5,8 @@
   <title>Socket Rummy</title>
 </head>
 
-<body>
+<body style="background: black">
+  <h3 id="yourTurn" style="color: white"></h3>
   <canvas id="canvas" width="640" height="480" style="border:1px solid black;"></canvas>
 </body>
 <script src="/socket.io/socket.io.js"></script>
@@ -15,6 +16,7 @@
   socket = io.connect("localhost:3000");
 </script>
 <script src="window.js"></script>
+<script src="ui.js"></script>
 <script src="sprite.js"></script>
 <script src="game_client.js"></script>
 <script src="game_network.js"></script>

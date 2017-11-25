@@ -7,23 +7,23 @@ function RenderWindow(width, height, bgColour)
     this.height = height;
 
     //Draws a sprite at its given position.
-    this.draw = function(drawable)
+    this.draw = function (drawable)
     {
         if (drawable.type === "sprite")
-            {
-                this.context.drawImage(drawable.img, drawable.x, drawable.y, drawable.imageData.width, drawable.imageData.height);
-            }
+        {
+            this.context.drawImage(drawable.img, drawable.x, drawable.y, drawable.width, drawable.height);
+        }
         else if (drawable.type === "rect")
-            {
-                this.context.beginPath();
-                this.context.rect(drawable.x, drawable.y, drawable.width, drawable.height);
-                this.context.fillStyle = drawable.fillColour;
-                this.context.fill();
-                this.context.closePath();
-            }
+        {
+            this.context.beginPath();
+            this.context.rect(drawable.x, drawable.y, drawable.width, drawable.height);
+            this.context.fillStyle = drawable.fillColour;
+            this.context.fill();
+            this.context.closePath();
+        }
     }
 
-    this.resize = function(width, height)
+    this.resize = function (width, height)
     {
         canvas.width = width;
         canvas.height = height;
@@ -31,12 +31,12 @@ function RenderWindow(width, height, bgColour)
         this.height = height;
     }
 
-    this.setBackgroundColour = function(colour)
+    this.setBackgroundColour = function (colour)
     {
         canvas.style.background = colour;
     }
 
-    this.clearCanvas = function()
+    this.clearCanvas = function ()
     {
         this.context.clearRect(0, 0, canvas.width, canvas.height);
     }

@@ -1,7 +1,7 @@
 //Client Code
 //This is ran on all clients, and contains code for sending server events.
 
-var renderWindow = new RenderWindow(640, 480, "#067B2C"); //Initialises the RenderWindow. Allowing RenderWindow.draw() to be called.
+var renderWindow = new RenderWindow(740, 600, "#067B2C"); //Initialises the RenderWindow. Allowing RenderWindow.draw() to be called.
 
 function Client()
 {
@@ -9,76 +9,89 @@ function Client()
     this.otherClientData =
         {
             numberOfCards: 0
-        }
+        };
 
     this.hand = []; //This client's hand.
     this.stock = []; //The stock.
     this.discard = []; //The discard pile.
-
-    this.isThisClientsTurn = true;
-
-    this.rematchButton = new Button(20, 20, 50, 50, "purple");
-    this.rematchButtonIsEnabled = false;
+    this.currentSet = []; //Holds the cards associated with the set being created.
+    this.currentSetIds = []; //Holds the ids associated with the set being created.
 }
 
 //Should be called on the client, and then emitted to the server to update the stock on the other client.
 Client.prototype.takeFromStock = function ()
 {
-    if (this.isThisClientsTurn)
-    {
-        socket.emit('send_requestStock');
-        socket.emit('send_endTurn');
-    }
+    socket.emit('send_requestStock');
 }
 
 Client.prototype.takeFromDiscard = function ()
 {
-    if (this.isThisClientsTurn)
-    {
-        this.addToHand(this.discard[this.discard.length - 1]);
-        socket.emit('send_removedFromDiscard', this.discard[this.discard.length - 1].id); //Tell the other client the discard pile has changed, telling it which card has been removed.
-        util.removeCardFromArray(this.discard[this.discard.length - 1], this.discard);
-        socket.emit('send_endTurn');
-    }
-
+    socket.emit('send_removedFromDiscard', this.discard[this.discard.length - 1].id); //Tell the other client the discard pile has changed, telling it which card has been removed.
 }
 
-Client.prototype.addToHand = function (card)
+Client.prototype.repositionHand = function ()
 {
-    if (this.isThisClientsTurn)
+    var count = 0;
+    for (var i = 0; i < this.hand.length; i++)
     {
-        this.hand.push(card);
-        socket.emit('send_handChanged', this.hand.length);
+        if (this.hand[i] != null)
+        {
+            this.hand[i].grabBtn.changePath("addToSet.png");
+            //Do a check here to see if card x has reached bounds, then gotta move cards down on the y and reset on the x.
+            if (i < 26)
+            {
+                this.hand[i].setPosition((i * (renderWindow.width * 0.04)), renderWindow.height * 0.7);
+            }
+            else
+            {
+
+                this.hand[i].setPosition((count * (renderWindow.width * 0.04)), renderWindow.height * 0.8);
+                count++;
+            }
+        }
     }
 }
 
 //Should be called on the client, and then trigger an event for the server to update the number of cards this client has for the other client.
 Client.prototype.removeFromHand = function (card)
 {
-    if (this.isThisClientsTurn)
-    {
-        util.removeCardFromArray(card, this.hand); //Remove card from hand array.
-
-        card.setPosition(320, 140);
-        this.discard.push(card);
-        socket.emit('send_addedToDiscard', card.id); //Tell the other client the discard pile has changed, telling it which card has been added.
-
-        this.takeFromStock(); //Remove a card from the stock pile and add it to hand. This will trigger a hand changed event.
-        socket.emit('send_isHandEmpty', this.hand.length);
-        socket.emit('send_endTurn');
-    }
+    socket.emit('send_removeFromHand', card.id);
 }
 
-Client.prototype.makeSet = function (card)
+Client.prototype.addCardToSet = function (card)
 {
-    if (this.isThisClientsTurn)
-    {
-        socket.emit('send_endTurn');
-    }
+    socket.emit('send_addCardToSet', card.id);
+}
+
+Client.prototype.makeSet = function ()
+{
+    socket.emit('send_makeSet');
 }
 
 function Util()
 {
+    this.isSameNumber = function (cardId1, cardId2)
+    {
+        return ((cardId2.substr(1, cardId2.length)) === (cardId1.substr(1, cardId1.length)));
+    }
+
+    this.isOneHigherAndInSameSuit = function (cardId1, cardId2)
+    {
+        var cardNumbers =
+            {
+                one: parseInt(cardId1.substr(1, cardId1.length)),
+                two: parseInt(cardId2.substr(1, cardId2.length))
+            };
+
+        var cardSuits =
+            {
+                one: cardId1.substr(0, 1),
+                two: cardId2.substr(0, 1)
+            };
+
+        return ((cardSuits.one === cardSuits.two) && (cardNumbers.two === cardNumbers.one + 1));
+    }
+
     this.removeCardFromArray = function (card, array)
     {
         for (var i = 0; i < array.length; i++)
@@ -140,151 +153,17 @@ function Card(number, suit)
                 break;
         }
 
-        this.discardBtn = new Button(this.sprite.x + 2, this.sprite.y - 10, 8, 8, "red");
-        this.grabBtn = new Button(this.sprite.x + 12, this.sprite.y - 10, 8, 8, "blue");
+        this.discardBtn = new Sprite("cross.png", this.sprite.x + 2, this.sprite.y - 15, 15, 15);
+        this.grabBtn = new Sprite("plus.png", this.sprite.x + 14, this.sprite.y - 15, 15, 15);
     }
 
     this.setPosition = function (x, y)
     {
         this.sprite.setPosition(x, y);
-        this.discardBtn.setPosition(x + 2, y - 10);
-        this.grabBtn.setPosition(x + 12, y - 10);
+        this.discardBtn.setPosition(x + 2, y - 15);
+        this.grabBtn.setPosition(x + 14, y - 15);
     }
 
     this.setup();
 }
 
-
-var cardBacks = [];
-var takeFromStockBtn = new Button(492, 150, 8, 8, "blue");
-
-
-//Call code that happens once on game start here.
-function start()
-{
-    util.initialiseStock();
-    cardBacks.push(new Sprite("cards/back.png", 480, 140)); //Create the initial stock pile card back.
-    socket.emit('send_gameStart');
-}
-
-
-
-//Call render code in here.
-function render()
-{
-    //Draw the top card on the discard pile.
-    if (client.discard[client.discard.length - 1] != null)
-    {
-        renderWindow.draw(client.discard[client.discard.length - 1].sprite);
-        renderWindow.draw(client.discard[client.discard.length - 1].grabBtn);
-    }
-
-    var count = 0;
-    //Draw this client's hand.
-    for (var i = 0; i < client.hand.length; i++)
-    {
-        if (client.hand[i] != null)
-        {
-            //Do a check here to see if card x has reached bounds, then gotta move cards down on the y and reset on the x.
-            if (i < 24)
-            {
-                client.hand[i].setPosition((i * 25), 300);
-            }
-            else
-            {
-
-                client.hand[i].setPosition((count * 25), 360);
-                count++;
-            }
-
-            renderWindow.draw(client.hand[i].sprite);
-            renderWindow.draw(client.hand[i].discardBtn);
-            renderWindow.draw(client.hand[i].grabBtn);
-        }
-
-    }
-
-    //Draw all of the card backs in the game.
-    for (var i = 0; i < cardBacks.length; i++)
-    {
-        if (cardBacks[i] != null)
-        {
-            renderWindow.draw(cardBacks[i]);
-        }
-    }
-
-    renderWindow.draw(takeFromStockBtn);
-
-    if (client.rematchButtonIsEnabled)
-    {
-        renderWindow.draw(client.rematchButton);
-    }
-}
-
-var boundingRect = canvas.getBoundingClientRect();
-var mouseX;
-var mouseY;
-
-document.addEventListener('mousemove', function (e)
-{
-    mouseX = e.clientX - boundingRect.left;
-    mouseY = e.clientY - boundingRect.top;
-});
-
-document.addEventListener('click', function ()
-{
-    for (var i = 0; i < client.hand.length; i++)
-    {
-        if (client.hand[i].discardBtn.isHighlighted()) //Is discard buton highlighted when clicking.
-        {
-            client.removeFromHand(client.hand[i]);
-        }
-        else if (client.hand[i].grabBtn.isHighlighted()) //Is grab buton highlighted when clicking.
-        {
-            console.log("Making a set using..");
-        }
-    }
-
-    if (client.discard[client.discard.length - 1] != null)
-    {
-        if (client.discard[client.discard.length - 1].grabBtn.isHighlighted())
-        {
-            client.takeFromDiscard();
-        }
-    }
-
-    if (takeFromStockBtn.isHighlighted())
-    {
-        client.takeFromStock();
-    }
-
-    if (client.rematchButtonIsEnabled && client.rematchButton.isHighlighted())
-    {
-        socket.emit('send_startRematch');
-        client.rematchButtonIsEnabled = false;
-    }
-
-
-});
-
-
-function Button(x, y, w, h, colour)
-{
-    this.type = "rect";
-
-    this.x = x;
-    this.y = y;
-    this.width = w;
-    this.height = h;
-    this.fillColour = colour;
-
-    this.isHighlighted = function ()
-    {
-        return mouseX > this.x && mouseX < this.x + this.width && mouseY < this.y + this.height && mouseY > this.y;
-    }
-    this.setPosition = function (x, y)
-    {
-        this.x = x;
-        this.y = y;
-    }
-}
