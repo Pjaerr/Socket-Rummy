@@ -16,6 +16,9 @@ function Client()
     this.discard = []; //The discard pile.
     this.currentSet = []; //Holds the cards associated with the set being created.
     this.currentSetIds = []; //Holds the ids associated with the set being created.
+
+    this.makeSetButtonIsEnabled = false;
+    this.makeSetButton = new Sprite("addToSet.png", renderWindow.width * 0.65, renderWindow.height * 0.55, 30, 30);
 }
 
 //Should be called on the client, and then emitted to the server to update the stock on the other client.

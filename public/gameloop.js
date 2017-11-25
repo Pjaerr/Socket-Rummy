@@ -12,6 +12,11 @@ function start()
 //Call render code in here.
 function render()
 {
+	if (client.makeSetButtonIsEnabled)
+	{
+		renderWindow.draw(client.makeSetButton);
+	}
+
 	//Draw the top card on the discard pile.
 	if (client.discard[client.discard.length - 1] != null)
 	{

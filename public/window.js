@@ -1,6 +1,6 @@
 function RenderWindow(width, height, bgColour)
 {
-    var canvas = document.getElementById("canvas");
+    this.canvas = document.getElementById("canvas");
     this.context = canvas.getContext("2d");
 
     this.width = width;
@@ -12,14 +12,6 @@ function RenderWindow(width, height, bgColour)
         if (drawable.type === "sprite")
         {
             this.context.drawImage(drawable.img, drawable.x, drawable.y, drawable.width, drawable.height);
-        }
-        else if (drawable.type === "rect")
-        {
-            this.context.beginPath();
-            this.context.rect(drawable.x, drawable.y, drawable.width, drawable.height);
-            this.context.fillStyle = drawable.fillColour;
-            this.context.fill();
-            this.context.closePath();
         }
     }
 

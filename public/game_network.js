@@ -47,6 +47,7 @@ socket.on('receive_addedToDiscard', function (cardId)
             if (client.stock[i].id === cardId)
             {
                 client.stock[i].setPosition(renderWindow.width * 0.7, renderWindow.height * 0.3);
+                client.stock[i].grabBtn.changePath("plus.png");
                 client.discard.push(client.stock[i]);
                 client.stock.splice(i, 1);
                 i = client.stock.length;
@@ -84,10 +85,8 @@ socket.on('receive_removedFromDiscard', function (cardId)
 {
     for (let i = 0; i < client.discard.length; i++)
     {
-        console.log("card with id " + cardId + " removed from Discard");
         if (client.discard[i].id === cardId)
         {
-
             client.stock.push(client.discard[i]);
             client.discard.splice(i, 1);
             i = client.discard.length;
@@ -152,8 +151,9 @@ socket.on('receive_removeFromHand', function (cardId)
     {
         if (client.hand[i].id === cardId)
         {
+            client.hand[i].grabBtn.changePath("plus.png");
             client.discard.push(client.hand[i]);
-            client.hand[i].setPosition(320, 140);
+            client.hand[i].setPosition(renderWindow.width * 0.7, renderWindow.height * 0.3);
             util.removeCardFromArray(client.hand[i], client.hand); //Remove card from hand array.
         }
     }
@@ -186,6 +186,8 @@ socket.on('receive_addCardToSet', function (cardId)
     }
 
     client.repositionHand();
+
+    client.makeSetButtonIsEnabled = true;
 });
 
 
@@ -241,7 +243,6 @@ socket.on('receive_makeSet', function ()
         console.log("SET MADE!");
 
         //TODO; Move the created set to an array, and then figure out where to show the all clients the actual cards.
-
         client.currentSet = [];
         client.currentSetIds = [];
     }
@@ -260,6 +261,8 @@ socket.on('receive_makeSet', function ()
     //Make a set using the client.currentSet, and then clear client.currentSet, making sure to tell other client about all of this.
 
     client.repositionHand();
+
+    client.makeSetButtonIsEnabled = false;
 });
 
 socket.on('receive_setMade', function (setIds)
@@ -309,13 +312,11 @@ socket.on('receive_gameStart', function ()
 
 socket.on('receive_youWin', function ()
 {
-    console.log("You Win!");
-    client.rematchButtonIsEnabled = true;
+    document.getElementById("yourTurn").innerHTML = "You Win!";
 });
 socket.on('receive_youLose', function ()
 {
-    console.log("You Lose!");
-    client.rematchButtonIsEnabled = true;
+    document.getElementById("yourTurn").innerHTML = "You Lose!";
 });
 
 //------------------------------------------------------GAME STATE MANAGEMENT -------------------------------------------------------

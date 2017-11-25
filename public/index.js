@@ -247,6 +247,8 @@ io.sockets.on('connection', function (socket)
     {
       socket.emit('receive_youWin');
       socket.broadcast.emit('receive_youLose');
+
+      currentIdOfTurn = "";
     }
   });
 

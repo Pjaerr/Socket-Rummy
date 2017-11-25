@@ -1,11 +1,18 @@
-var boundingRect = canvas.getBoundingClientRect();
 var mouseX;
 var mouseY;
 
+function getMousePos(canvas, evt)
+{
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    };
+}
 document.addEventListener('mousemove', function (e)
 {
-    mouseX = e.clientX - boundingRect.left;
-    mouseY = e.clientY - boundingRect.top;
+    mouseX = getMousePos(renderWindow.canvas, e).x;
+    mouseY = getMousePos(renderWindow.canvas, e).y;
 });
 
 document.addEventListener('click', function ()
@@ -28,6 +35,11 @@ document.addEventListener('click', function ()
         {
             client.takeFromDiscard();
         }
+    }
+
+    if (client.makeSetButton.isHighlighted())
+    {
+        client.makeSet();
     }
 
     if (takeFromStockBtn.isHighlighted())
